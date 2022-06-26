@@ -16,6 +16,6 @@ INSTALL:
 
 
 USAGE:
-./recalc_elevation_DAVIT_linear  inputfilename outputfilename
+./recalc_elevation_DAVIT_linear  inputfilename.fitacf outputfilename.fitacf
 
 
