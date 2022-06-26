@@ -1,0 +1,21 @@
+Calibrates elevation of KER SuperDARN radar (creates correct elev.normal)
+Tested under Lubuntu 20.04
+
+Requirements: RSTLite (or RST) library
+	      libz
+	      gcc
+
+INSTALL:
+
+1)Install RSTlite (or RST) from https://github.com/SuperDARN/rst
+
+2)Link include and lib directories from RST distribution to home directory
+
+3)call:
+ make all
+
+
+USAGE:
+./recalc_elevation_DAVIT_linear  inputfilename outputfilename
+
+
