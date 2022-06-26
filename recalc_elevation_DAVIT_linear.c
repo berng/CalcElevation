@@ -1,6 +1,3 @@
-/// Author: Oleg I.Berngardt, 2020-2022
-/// Licensed under GPL
-
 #include "main.h"
 
 #define LightSpeed 3e8
@@ -12,20 +9,14 @@
 #define DEG2RAD (Pi/180.)
 
 
-
-
-
 double get_expected_phase(double Az,double El,double Lambda,double D,double H)
  {
   double res;
-/// calc phase, see Shepherd/RadioScience, 2017
+/// calc expected phase for given Azimuth and Elevation
   res=2.*3.1415*1.0/Lambda*(D*sqrt(cos(Az)*cos(Az)-sin(El)*sin(El))+H*sin(El));
   return res;
-#ifdef KERFIX
-  return atan2(sin(res/2.0)/cos(res/2.0),1.0)*2.0;
-#else
-  return atan2(sin(res/2.0)/cos(res/2.0),1.0)*2.0;
-#endif
+
+//  return atan2(sin(res/2.0)/cos(res/2.0),1.0)*2.0;
 
  }
 
@@ -33,9 +24,6 @@ double phi_to_elev(double phi,double Az,double Lambda,double D,double H)
 {
 #define WRONG_RESULT -999.0
  double M=phi/(2.*3.1415)*Lambda/D;
-#ifdef KERFIX
-// M*=2.;
-#endif
 
  double det=(cos(Az)*cos(Az)-M*M)*(1+H*H/(D*D))+M*M*H*H/(D*D);
  if(det>0.)
@@ -49,7 +37,7 @@ double phi_to_elev(double phi,double Az,double Lambda,double D,double H)
  return WRONG_RESULT;
 }
 
-//#include "read_config.h"
+// #include "read_config.h"
 
 
 int main(int argc,char *argv[]) {
@@ -65,14 +53,14 @@ int main(int argc,char *argv[]) {
 
 
 //  config_record_type* config_record;
-  long config_record_len;
+//  long config_record_len;
+
 #ifndef WRONG_PHASE
 #define WRONG_PHASE -999.9
 #endif
 
   double phase=WRONG_PHASE;
-
-//  read_config_phase(&config_record,&config_record_len);
+//   read_config_phase(&config_record,&config_record_len);
 
 
   
@@ -120,12 +108,6 @@ double j=0;
      curdate=curdate*100+(long long int)prm.time.hr;
      curdate=curdate*100+(long long int)prm.time.mt;
      
-/*
-     phase=read_phase(curdate,prm.channel,prm.tfreq,config_record,config_record_len);
-     if(phase<=WRONG_PHASE)
-        fprintf(stderr,"no phase error! cdate:%lld channel: %d freq: %d\n",curdate,prm.channel,prm.tfreq);
-*/
-
      if(fit.elv!=NULL)
        {
     
@@ -147,11 +129,9 @@ long i;
        {
     	double A,B,C,expected_phi;
     	double D;
-    	double H=-3.8;//-1.2;  ///RawACF reverse sign for interferometer, we must revers height from -3.8 to 3.8
+    	double H;  ///RawACF reverse sign for interferometer, we must revers height from -3.8 to 3.8
 //KER
-//#ifdef KERFIX
 	D=-89.6; H=0.0;
-//#endif
 	
 	double D1,beam,expected_elev;
 	double Lambda;
@@ -164,9 +144,7 @@ long i;
     	B=0;
     	C=0;
 
-//	double BeamWidth=3.5;
-//	double BeamWidth=3.24;
-	double BeamWidth=3.24*5/6;
+	double BeamWidth=3.24;
 	double Az;
 
 	Az=(beam-7.5)*BeamWidth*3.1415/180.;
@@ -174,16 +152,11 @@ long i;
 
 	range=prm.frang+prm.rsep*(double)i;
 	double Re=6371;
-//	double altitude=95.;
 	double altitude=90.;
 	expected_elev=asin((((Re+altitude)*(Re+altitude)-(Re*Re+range*range))/(2.*Re*range)));
 	double expected_elev_plain;
 	expected_elev_plain=atan2(altitude,sqrt(range*range-altitude*altitude));
 	expected_phi=get_expected_phase(Az,expected_elev,Lambda,D,H);
-
-#ifdef KERFIX
-//	expected_phi-=3.14;  //for KER?
-#endif
 
 	double NormD1Lambda;
 	NormD1Lambda=D1/Lambda;//-floor(D1/Lambda); /// Fix according to Shepherd 2017
@@ -192,16 +165,8 @@ long i;
 	double corrected_phi;
 	double fr_norm;
 	fr_norm=(double)prm.tfreq/10000.;
-// standard FitACF interferometric phase
-//	corrected_phi=fit.xrng[i].phi0-A-B*fr_norm-C*fr_norm*fr_norm;
 
-// correct FitACF interferometric phase
-#ifdef KERFIX
-//	corrected_phi=fit.xrng[i].phi0/2.-A;//-B*fr_norm-C*fr_norm*fr_norm;  //for KER
 	corrected_phi=fit.xrng[i].phi0-A;//-B*fr_norm-C*fr_norm*fr_norm;  //for KER
-#else
-	corrected_phi=fit.xrng[i].phi0-A;//-B*fr_norm-C*fr_norm*fr_norm;
-#endif
 
 	double calibrated_elev;
 	double tmp_corr_phi;
@@ -236,38 +201,23 @@ long i;
            min_tmp_corr_phi=tmp_corr_phi;
            min_n=n;
           }
-
-/*
-         if(calibrated_elev>max_calibrated_elev)
-          {
-           max_calibrated_elev=calibrated_elev;
-           max_tmp_corr_phi=tmp_corr_phi;
-           max_n=n;
-          }
-*/
         }
         }
 
 	if(min_n<10)
 	{
 
-//	    if(range<500)
-//	    {
-	     fit.elv[i].normal=min_calibrated_elev*180./3.14;
-//    	    }
-//	    else
-//	    {
-//	     fit.elv[i].normal=max_calibrated_elev*180./3.14;
-//    	    }
-
+	    fit.elv[i].normal=min_calibrated_elev*180./3.14;
 	    fit.elv[i].high=max_calibrated_elev*180./3.14;
     	    fit.elv[i].low=min_calibrated_elev*180./3.14;
     	}
 	char substring[255];
 	substring[0]=0;
+
+#ifdef DEBUG
 	if(min_n<10 
 	 && (double)prm.frang+(double)prm.rsep*i<350
-	 && (long)prm.bmnum >=5 && (long)prm.bmnum <=10
+//	 && (long)prm.bmnum >=5 && (long)prm.bmnum <=10
 //	&& prm.tfreq<12000
     		
 	 )
@@ -322,6 +272,7 @@ long i;
     			max_n
 
     			);
+#endif
 
 	}
       }
