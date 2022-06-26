@@ -9,7 +9,7 @@ INSTALL:
 
 1)Install RSTlite (or RST) from https://github.com/SuperDARN/rst
 
-2)Link include and lib directories from RST distribution to home directory
+2)Link include and lib directories from RST distribution to home directory of this distribution
 
 3)call:
  make all
